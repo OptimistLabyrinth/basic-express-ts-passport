@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Index</title>
+</head>
+
+<body>
+  <h1>Here is the Landing Page</h1>
+  <div style="float: right;">
+    <form action="/sign-out?_method=DELETE" method="POST">
+      <button type="submit">Logout</button>
+    </form>
+  </div>
+  {{#if signedin}}
+  <div>
+    <button><a href="/my-page">My Page</a></button>
+    <button><a href="/secret">Secret Contents</a></button>
+  </div>
+  {{/if}}
+  <div>
+    <button><a href="/sign-in">Sign In</a></button>
+    <button><a href="/sign-up">Sign Up</a></button>
+  </div>
+</body>
+
+</html>
