@@ -1,0 +1,23 @@
+[
+  {
+    "name": "postgresTestConn",
+    "type": "postgres",
+    "url": "postgresql://[user]:[password]@[host][port]/[database]",
+    "synchronize": false,
+    "logging": false,
+    "entities": [
+      "typeorm/entity/**/*.ts"
+    ],
+    "migrations": [
+      "typeorm/migration/**/*.ts"
+    ],
+    "subscribers": [
+      "typeorm/subscriber/**/*.ts"
+    ],
+    "cli": {
+      "entitiesDir": "typeorm/entity",
+      "migrationsDir": "typeorm/migration",
+      "subscribersDir": "typeorm/subscriber"
+    }
+  }
+]

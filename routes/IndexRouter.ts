@@ -1,8 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express'
 import passport from 'passport'
 
-import type { User } from './Users'
-import users, { getUserByEmail } from './Users'
+import Auth from '../typeorm/entity/Auth'
+import { authController } from '../src/Server'
 
 const IndexRouter = express.Router()
 
@@ -12,23 +12,27 @@ IndexRouter.get('/', (req, res) => {
 
 IndexRouter.get('/sign-up', (req, res) => {
   let message = ''
-  if (res.app.locals.signUpFailed) {
+  if (res.app.locals.duplicateEmail) {
+    res.app.locals.duplicateEmail = false
+    message = 'Same email has already been signed up'
+  }
+  else if (res.app.locals.signUpFailed) {
     res.app.locals.signUpFailed = false
-    message = 'The same email is already signed up'
+    message = 'Sign up failed because of server internal error'
   }
   res.render('sign-up.hbs', { message })
 })
 
-IndexRouter.post('/sign-up/user', (req, res) => {
-  const user = getUserByEmail(req.body.email)
-  if (!user) {
-    const newUser = {
-      id: Date.now().toString(),
-      ...req.body
-    }
-    users.push(newUser)
+IndexRouter.post('/sign-up/user', async (req, res) => {
+  const auth = await authController.findAuthByEmail(req.body.email)
+  if (auth) {
+    res.app.locals.duplicateEmail = true
+    res.redirect('/sign-up')
+  }
+  else if (await authController.saveAuth(req.body)) {
     res.redirect('/sign-in')
-  } else {
+  }
+  else {
     res.app.locals.signUpFailed = true
     res.redirect('/sign-up')
   }
@@ -46,11 +50,12 @@ IndexRouter.post('/sign-in/user',
   })
 )
 
-IndexRouter.get('/my-page', checkAuthenticated, (req, res) => {
+IndexRouter.get('/my-page', checkAuthenticated, async (req, res) => {
   let userName = ''
   let userEmail = ''
+  const reqUser = (await req.user) as Auth
   if (req.user) {
-    const currentUser = req.user as User
+    const currentUser = reqUser
     if (currentUser.name) {
       userName = currentUser.name
     }
@@ -76,8 +81,9 @@ IndexRouter.delete('/sign-out', (req, res) => {
   res.redirect('/')
 })
 
-IndexRouter.get('/users', (req, res) => {
-  res.send(JSON.stringify(users, null, 2))
+IndexRouter.get('/users', async (req, res) => {
+  const listOfAuth = await authController.listAuth()
+  res.send(listOfAuth)
 })
 
 function checkAuthenticated(req: Request, res: Response, next: NextFunction) {

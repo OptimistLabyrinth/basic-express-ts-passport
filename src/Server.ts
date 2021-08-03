@@ -7,6 +7,7 @@ import passport from 'passport'
 
 import initializePassport from './PassportConfig'
 import IndexRouter from '../routes/IndexRouter'
+import AuthController from '../typeorm/controller/Auth'
 
 const expressApp = express()
 const port = 4000
@@ -36,4 +37,9 @@ expressApp.listen(port, () => {
   console.log(`[Express App] listening on port ${port}`)
 })
 
+const authController = new AuthController()
+
 export default expressApp
+export {
+  authController
+}

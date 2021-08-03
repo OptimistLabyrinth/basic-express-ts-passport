@@ -1,12 +1,12 @@
 import passport from 'passport'
 import passportLocal from 'passport-local'
-import type { User } from '../routes/Users'
-import { getUserByEmail, getUserById } from '../routes/Users'
+import Auth from '../typeorm/entity/Auth'
+import { authController } from './Server'
 const LocalStrategy = passportLocal.Strategy
 
 function initializePassport(passportParam: passport.PassportStatic) {
-  const authenticateUser: passportLocal.VerifyFunction = (email, password, done) => {
-    const user = getUserByEmail(email)
+  const authenticateUser: passportLocal.VerifyFunction = async (email, password, done) => {
+    const user = await authController.findAuthByEmail(email)
     if (!user) {
       return done(null, false, { message: 'No user with that email' })
     }
@@ -17,15 +17,15 @@ function initializePassport(passportParam: passport.PassportStatic) {
   }
 
   passportParam.use(new LocalStrategy({
-    usernameField: 'email', passwordField: 'password'
-  }, authenticateUser))
+      usernameField: 'email', passwordField: 'password'
+    }, authenticateUser))
   passportParam.serializeUser((user, done) => {
-    const currentUser = user as User
+    const currentUser = user as Auth
     return done(null, currentUser.id)
   })
   passportParam.deserializeUser((id, done) => {
-    const currentId = id as string
-    return done(null, getUserById(currentId))
+    const currentId = id as number
+    return done(null, authController.findAuthById(currentId))
   })
 }
 
